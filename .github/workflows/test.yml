@@ -82,7 +82,7 @@ jobs:
 #         skip_existing: true
 
     - name: Publish distribution to PyPI
-      if: github.event_name == 'release' && (github.event.action == 'created' or github.event.action == 'published')
+      if: github.event_name == 'release' && (github.event.action == 'created' || github.event.action == 'published')
       run: echo "hello world"
 #       uses: pypa/gh-action-pypi-publish@master
 #       with:
