@@ -3,14 +3,13 @@ on:
   push:
     branches:
     - main
-    - feature/datasets
   pull_request:
     branches:
     - main
-    - feature/datasets
   release:
     types:
     - created
+    - published
 jobs:
   test:
     name: ${{ matrix.lang }} tests on ${{ matrix.os }}
@@ -23,67 +22,68 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Set up Python 3.9
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.9'
+#     - name: Set up Python 3.9
+#       uses: actions/setup-python@v2
+#       with:
+#         python-version: '3.9'
 
-    - name: Install Poetry
-      run: |
-        pip install --upgrade pip
-        pip install poetry coveragepy-lcov==0.1.1
+#     - name: Install Poetry
+#       run: |
+#         pip install --upgrade pip
+#         pip install poetry coveragepy-lcov==0.1.1
 
-    - name: Configure poetry
-      run: poetry config virtualenvs.in-project true
+#     - name: Configure poetry
+#       run: poetry config virtualenvs.in-project true
 
-    - name: Setup Cache Poetry virtualenv
-      uses: actions/cache@v1
-      id: cached-poetry-dependencies
-      with:
-        path: .venv
-        key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}-${{ hashFiles('.github/workflows/test.yml') }}
+#     - name: Setup Cache Poetry virtualenv
+#       uses: actions/cache@v1
+#       id: cached-poetry-dependencies
+#       with:
+#         path: .venv
+#         key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}-${{ hashFiles('.github/workflows/test.yml') }}
 
-    - name: Ensure cache is healthy
-      if: steps.cached-poetry-dependencies.outputs.cache-hit == 'true'
-      run: |
-        poetry show || rm -rf .venv
+#     - name: Ensure cache is healthy
+#       if: steps.cached-poetry-dependencies.outputs.cache-hit == 'true'
+#       run: |
+#         poetry show || rm -rf .venv
 
-    - name: Install Dependencies
-      if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-      run: |
-        poetry install -E dask -E spark
-        poetry run pip install --upgrade git+https://github.com/zillow/metaflow.git@feature/kfp
+#     - name: Install Dependencies
+#       if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+#       run: |
+#         poetry install -E dask -E spark
+#         poetry run pip install --upgrade git+https://github.com/zillow/metaflow.git@feature/kfp
 
-    - name: Code Quality Check
-      run: |
-        poetry run black datasets --check
-        poetry run flake8 datasets
+#     - name: Code Quality Check
+#       run: |
+#         poetry run black datasets --check
+#         poetry run flake8 datasets
 
-    - name: Execute Python tests
-      run: |
-        poetry run pytest datasets
-        pip install coverage==6.1.2
-        coveragepy-lcov
+#     - name: Execute Python tests
+#       run: |
+#         poetry run pytest datasets
+#         pip install coverage==6.1.2
+#         coveragepy-lcov
 
-    - name: Publish to coveralls.io
-      uses: coverallsapp/github-action@master
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        path-to-lcov: lcov.info
+#     - name: Publish to coveralls.io
+#       uses: coverallsapp/github-action@master
+#       with:
+#         github-token: ${{ secrets.GITHUB_TOKEN }}
+#         path-to-lcov: lcov.info
 
-    - name: Poetry Build
-      run: |
-        poetry build
+#     - name: Poetry Build
+#       run: |
+#         poetry build
 
-    - name: Publish distribution to Test PyPI
-      uses: pypa/gh-action-pypi-publish@master
-      with:
-        password: ${{ secrets.TEST_PYPI_API_TOKEN }}
-        repository_url: https://test.pypi.org/legacy/
-        skip_existing: true
+#     - name: Publish distribution to Test PyPI
+#       uses: pypa/gh-action-pypi-publish@master
+#       with:
+#         password: ${{ secrets.TEST_PYPI_API_TOKEN }}
+#         repository_url: https://test.pypi.org/legacy/
+#         skip_existing: true
 
     - name: Publish distribution to PyPI
-      if: github.event_name == 'release' && github.event.action == 'created'
-      uses: pypa/gh-action-pypi-publish@master
-      with:
-        password: ${{ secrets.PYPI_API_TOKEN }}
+      if: github.event_name == 'release' && (github.event.action == 'created' or github.event.action == 'published')
+      run: echo "hello world"
+#       uses: pypa/gh-action-pypi-publish@master
+#       with:
+#         password: ${{ secrets.PYPI_API_TOKEN }}
